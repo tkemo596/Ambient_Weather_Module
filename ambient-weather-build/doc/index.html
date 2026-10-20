@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Ambient Weather Driver</title>
+</head>
+<body>
+<h1>Ambient Weather Driver</h1>
+<p>Adds an <b>Ambient Weather</b> device type to Ignition's OPC UA server. Each device polls the
+Ambient Weather REST API (<code>GET /v1/devices</code>) and exposes every station on the account,
+with one tag per reported field.</p>
+
+<h2>Setup</h2>
+<ol>
+    <li>On your AmbientWeather.net account page, create an <b>Application Key</b> and an <b>API Key</b>.</li>
+    <li>In the gateway, go to Connections &rarr; Devices &rarr; Create Device and choose <b>Ambient Weather</b>.</li>
+    <li>Enter both keys. Leave the base URL at its default; a 60-second poll interval is typical.</li>
+    <li>Browse the device in the OPC browser: one folder per station, plus <code>_Diagnostics</code>.</li>
+</ol>
+
+<h2>Quality</h2>
+<ul>
+    <li><b>Good</b> &ndash; fresh reading.</li>
+    <li><b>Uncertain</b> &ndash; the station's latest reading is older than <i>Stale After</i>.</li>
+    <li><b>Bad</b> &ndash; the API call failed, a sensor dropped out, or a station was removed. The last value is kept.</li>
+</ul>
+
+<p>Values carry the station's reading time as their timestamp. Units are as Ambient Weather reports
+them (&deg;F, mph, inHg, in); each tag's description names its unit.</p>
+</body>
+</html>

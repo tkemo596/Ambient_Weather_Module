@@ -1,0 +1,8 @@
+Ambient Weather Driver for Ignition
+Copyright 2026 Arrington Automation Incorporated
+
+This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+It calls the Ambient Weather REST API; use of that API is subject to Ambient Weather's terms.
+Ambient Weather is a trademark of its owner. Ignition is a trademark of Inductive Automation;
+this is an independent module, not an Inductive Automation product.

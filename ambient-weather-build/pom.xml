@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.arringtonautomation.ignition</groupId>
+        <artifactId>ambient-weather-driver</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>ambient-weather-build</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.arringtonautomation.ignition</groupId>
+            <artifactId>ambient-weather-gateway</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>com.inductiveautomation.ignitionsdk</groupId>
+                <artifactId>ignition-maven-plugin</artifactId>
+                <version>1.2.0</version>
+
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>modl</goal>
+                        </goals>
+                    </execution>
+                </executions>
+
+                <configuration>
+                    <projectScopes>
+                        <projectScope>
+                            <name>ambient-weather-gateway</name>
+                            <scope>G</scope>
+                        </projectScope>
+                    </projectScopes>
+
+                    <moduleId>com.arringtonautomation.ignition.ambientweather</moduleId>
+                    <moduleName>${module-name}</moduleName>
+                    <moduleDescription>${module-description}</moduleDescription>
+                    <moduleVersion>${project.version}</moduleVersion>
+                    <requiredIgnitionVersion>${ignition-platform-version}</requiredIgnitionVersion>
+                    <licenseFile>license.html</licenseFile>
+                    <documentationFile>doc/index.html</documentationFile>
+
+                    <depends>
+                        <depend>
+                            <scope>G</scope>
+                            <moduleId>com.inductiveautomation.opcua</moduleId>
+                        </depend>
+                    </depends>
+
+                    <hooks>
+                        <hook>
+                            <scope>G</scope>
+                            <hookClass>com.arringtonautomation.ignition.ambientweather.ModuleHook</hookClass>
+                        </hook>
+                    </hooks>
+                </configuration>
+            </plugin>
+
+            <!--
+              Vendor name. ignition-maven-plugin 1.2.0 has no vendor parameter and builds module.xml in a
+              temp folder it deletes after zipping, so the finished .modl is rewritten instead: unzip,
+              add <vendorName> after </description>, zip back up. Same idea as the injectVendorName
+              task commonly used in Gradle-built Ignition modules.
+
+              Must stay AFTER ignition-maven-plugin: both run in the package phase, and Maven runs
+              same-phase executions in POM order.
+
+              On 8.3 the vendor of a SIGNED module comes from the certificate's CN; <vendorName> is the
+              fallback for unsigned modules. If this module is ever signed, use CN=Arrington Automation.
+            -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <id>inject-vendor-name</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <property name="modl" value="${project.build.directory}/Ambient-Weather-Driver-unsigned.modl"/>
+                                <property name="work" value="${project.build.directory}/modl-vendor"/>
+                                <fail message="${modl} not found - did ignition-maven-plugin rename its output?">
+                                    <condition>
+                                        <not><available file="${modl}"/></not>
+                                    </condition>
+                                </fail>
+                                <delete dir="${work}" quiet="true"/>
+                                <unzip src="${modl}" dest="${work}"/>
+                                <replace file="${work}/module.xml"
+                                         token="&lt;/description&gt;"
+                                         value="&lt;/description&gt;&lt;vendorName&gt;${module-vendor}&lt;/vendorName&gt;"/>
+                                <!-- Delete first: Ant's zip skips writing when it thinks the archive is up to date. -->
+                                <delete file="${modl}"/>
+                                <zip destfile="${modl}" basedir="${work}"/>
+                                <delete dir="${work}" quiet="true"/>
+                                <echo message="module.xml: vendorName set to &quot;${module-vendor}&quot;"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
